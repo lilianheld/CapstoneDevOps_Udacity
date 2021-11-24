@@ -1,4 +1,5 @@
-<include a CircleCI status badge, here>
+## Circle CI Status
+[![lilianheld](https://circleci.com/gh/lilianheld/udacityDevOps_project4.svg?style=svg)](https://app.circleci.com/pipelines/github/lilianheld/udacityDevOps_project4)
 
 ## Project Overview
 
