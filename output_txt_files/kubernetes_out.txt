@@ -1,0 +1,5 @@
+pod/flaskapp unchanged
+NAME       READY   STATUS    RESTARTS   AGE
+flaskapp   1/1     Running   0          3m41s
+Forwarding from 127.0.0.1:8000 -> 80
+Forwarding from [::1]:8000 -> 80

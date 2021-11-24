@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: flaskapp
+spec:
+  containers:
+  - name: flaskapp
+    image: 1802/udacity_project4:flaskapp
+    ports:
+    - containerPort: 80
+  imagePullSecrets:
+  - name: regcred
+
