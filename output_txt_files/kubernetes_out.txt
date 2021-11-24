@@ -1,5 +1,15 @@
+(.project4) voclabs:~/environment/DevOps_Microservices/project-ml-microservice-kubernetes (master) $ ./run_kubernetes.sh 
 pod/flaskapp unchanged
 NAME       READY   STATUS    RESTARTS   AGE
-flaskapp   1/1     Running   0          3m41s
+flaskapp   1/1     Running   0          2m14s
 Forwarding from 127.0.0.1:8000 -> 80
 Forwarding from [::1]:8000 -> 80
+Handling connection for 8000
+---- 
+(.project4) voclabs:~/environment/DevOps_Microservices/project-ml-microservice-kubernetes (master) $ ./make_prediction.sh 
+Port: 8000
+{
+  "prediction": [
+    20.35373177134412
+  ]
+}

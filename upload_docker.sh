@@ -14,4 +14,4 @@ echo "Docker ID and Repository: $dockerpath"
 
 # Step 3:
 # Push image to a docker repository
-docker push 1802/udacity_project4:flaskapp
+docker login && docker push 1802/udacity_project4:flaskapp
