@@ -43,9 +43,31 @@ source .devops/bin/activate
 2. Run in Docker:  `./run_docker.sh`
 3. Run in Kubernetes:  `./run_kubernetes.sh`
 
+### Retrieving predicitions
+
+1. Run the flask app following one of the above instructions
+2. Run: `./make_predictions.sh` to retrieve a prediction for the inout parameters, specified in the make_predictions script
 ### Kubernetes Steps
 
 * Setup and Configure Docker locally
 * Setup and Configure Kubernetes locally
 * Create Flask app in Container
 * Run via kubectl
+
+### Files and Folders
+* .circleci/config.yml:     contains the definition of steps that are run within the circleci pipeline - install dependencies & linting
+* model_data:               contains all files related to the pretrained ML model
+* output_txt_files:         contain outputs after executing the run_docker and run_kubernetes scripts
+* app.py:                   main file to start the flask application
+* Dockerfile:               instructions to build a docker image of flask app
+* make_predictions.sh:      run predictions using the running flask app
+* Makefile:                 lint the Dockerfile
+* pod-spec.yaml:            defines the pod setup for the flask app running on a kubernetes cluster (which image to use, required secrets to pull image from private docker hub                               repo, ...)
+* requirements.txt:         libraries required in order to run the flask app
+* resize.sh:                increase disk space in cloud9 environment (required in order to being able to install kubernetes & minikube)
+* run_docker.sh:            run flask app in docker container
+* run_kubernetes.sh:        run flask app in kubernetes cluster
+* upload_docker.sh:            upload docker image to private github repo
+* 
+*  
+
