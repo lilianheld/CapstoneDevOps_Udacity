@@ -67,7 +67,8 @@ jobs:
       - run: 
           name: Push application Docker image
           command: |
-            login="$(aws ecr get-login)"
+            echo "Login to ECR"
+            login="$(aws ecr --region us-east-2 get-login)"
             echo "login variable: $login"
             ${login}
             docker tag udacity/capstone:latest "${ECR_ENDPOINT}/udacity/capstone:${CIRCLE_SHA1}"
