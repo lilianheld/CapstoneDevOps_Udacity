@@ -2,7 +2,7 @@
 #
 # Check https://circleci.com/docs/2.0/language-python/ for more details
 #
-version: 2
+version: 2.1
 
 jobs:
 
@@ -47,20 +47,21 @@ jobs:
   run_docker:
     working_directory: ~/repo
     docker:
-      - image: docker:17.05.0-ce-git            
-     - run:
-        name: Install dependencies
-        command: |
-          apk add --no-cache \
-            py-pip=9.0.0-r1
-          pip install \
-            awscli==1.11.76
-            
+      - image: docker:17.05.0-ce-git
+    steps:       
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --no-cache \
+              py-pip=9.0.0-r1
+            pip install \
+              awscli==1.11.76
+              
       - run:
           name: build docker image
           command: |
             docker build -t udacity/capstone .
-            
+              
       - run: 
           name: Push application Docker image
           command: |
