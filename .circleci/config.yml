@@ -5,6 +5,7 @@
 version: 2
 
 jobs:
+
   build:
     docker:
     # Use the same Docker base as the project
@@ -41,4 +42,37 @@ jobs:
           name: run lint
           command: |
             . venv/bin/activate
-            make lint 
+            make lint
+
+  run_docker:
+    working_directory: ~/repo
+    docker:
+      - image: docker:17.05.0-ce-git            
+     - run:
+        name: Install dependencies
+        command: |
+          apk add --no-cache \
+            py-pip=9.0.0-r1
+          pip install \
+            awscli==1.11.76
+            
+      - run:
+          name: build docker image
+          command: |
+            docker build -t udacity/capstone .
+            
+      - run: 
+          name: Push application Docker image
+          command: |
+            if [ "$ {CIRCLE_BRANCH}" == "master" ]; then
+              login="$(aws ecr get-login)"
+              ${login}
+              docker tag udacity/capstone:latest "${ECR_ENDPOINT}/udacity/capstone:${CIRCLE_SHA1}"
+              docker push "${ECR_ENDPOINT}/udacity/capstone:${CIRCLE_SHA1}"
+            fi
+            
+workflows:
+  default:
+    jobs:
+      - run_docker
+

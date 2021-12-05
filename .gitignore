@@ -1,0 +1,6 @@
+kubectl
+kubectl.sha256
+minikube-linux-amd64
+aws-iam-authenticator
+
+cloudformation/*
