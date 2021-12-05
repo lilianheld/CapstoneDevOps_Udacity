@@ -69,8 +69,10 @@ jobs:
           command: |
             if [ "$ {CIRCLE_BRANCH}" == "master" ]; then
               login="$(aws ecr get-login)"
+              echo ${login}
               ${login}
               docker tag udacity/capstone:latest "${ECR_ENDPOINT}/udacity/capstone:${CIRCLE_SHA1}"
+              docker image ls
               docker push "${ECR_ENDPOINT}/udacity/capstone:${CIRCLE_SHA1}"
             fi
             
