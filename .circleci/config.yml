@@ -138,6 +138,9 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: capstone
+          install-kubectl: true
       - kubernetes/install-kubectl
       - run:
           name: get pod spec
@@ -195,7 +198,7 @@ jobs:
             echo "Login to ECR"
             login="$(aws ecr --region us-east-2 get-login)"
             ${login}
-            export OLD_Version=$(cat old-version.txt)
+            export OLD_Version=$(cat project/kubernetes-deployment/old-version.txt)
             aws ecr batch-delete-image --repository-name udacity/capstone --image-ids imageTag=$OLD_Version
 
 workflows:
