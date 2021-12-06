@@ -102,6 +102,7 @@ jobs:
           paths:
             - kubernetes-deployment/deployment.yaml
             - kubernetes-deployment/service.yaml
+            - kubernetes-deployment/image-tag.txt
   
   create_deployment:
     executor: aws-eks/python3
@@ -164,10 +165,10 @@ workflows:
   default:
     jobs:
       - push_image
-      #- update_deployment_spec:
-      #    requires: [push_image]
+      - update_deployment_spec:
+          requires: [push_image]
       - create_deployment:
-         requires: [push_image]
+         requires: [update_deployment_spec]
       - create_service:
          requires: [create_deployment]
 
