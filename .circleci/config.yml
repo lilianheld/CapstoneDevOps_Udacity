@@ -114,8 +114,8 @@ workflows:
   default:
     jobs:
       - push_image
-      - update_deployment_spec
+      - update_deployment_spec:
           requires: [push_image]
-      - create_deployment
+      - create_deployment:
          requires: [update_deployment_spec]
 
