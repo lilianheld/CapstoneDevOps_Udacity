@@ -100,9 +100,9 @@ jobs:
       - persist_to_workspace:
           root: ~/
           paths:
-            - kubernetes-deployment/deployment.yaml
-            - kubernetes-deployment/service.yaml
-            - kubernetes-deployment/image-tag.txt
+            - project/kubernetes-deployment/deployment.yaml
+            - project/kubernetes-deployment/service.yaml
+            - project/kubernetes-deployment/image-tag.txt
   
   create_deployment:
     executor: aws-eks/python3
@@ -114,7 +114,7 @@ jobs:
           name: print out deployment spec
           command: |
             echo "-- deployment.yaml --"
-            cat kubernetes-deployment/deployment.yaml
+            cat ~/project/kubernetes-deployment/deployment.yaml
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: capstone
           install-kubectl: true
