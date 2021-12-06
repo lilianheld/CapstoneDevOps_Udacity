@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: newapp-260d566c348a0631d2b2246cac104b87bbfc6956
+  name: flaskapp-260d566c348a0631d2b2246cac104b87bbfc6956
   namespace: bluegreen
 spec:
   replicas: 2

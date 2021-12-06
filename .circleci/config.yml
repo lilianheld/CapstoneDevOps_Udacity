@@ -91,8 +91,11 @@ jobs:
             echo $OLD_IMAGETAG
             sed -i "s/$OLD_IMAGETAG/${CIRCLE_SHA1}/g" deployment.yaml
             sed -i "s/ECR_ENDPOINT/${ECR_ENDPOINT}/g" deployment.yaml
+            sed -i "s/$OLD_IMAGETAG/${CIRCLE_SHA1}/g" service.yaml
             echo "-- deployment.yaml --"
             cat deployment.yaml
+            echo "-- service.yaml --"
+            cat service.yaml
             echo ${CIRCLE_SHA1} > image-tag.txt
             echo "-- image-tag.txt --"
             cat image-tag.txt
@@ -122,9 +125,11 @@ jobs:
 workflows:
   default:
     jobs:
-     # - push_image
-      - update_deployment_spec
-     #     requires: [push_image]
-     # - create_deployment:
-     #    requires: [update_deployment_spec]
+      - push_image
+      - update_deployment_spec:
+          requires: [push_image]
+      - create_deployment:
+         requires: [update_deployment_spec]
+      - create_service:
+         requires: [create_deployment]
 
