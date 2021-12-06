@@ -138,6 +138,23 @@ jobs:
           resource-file-path: kubernetes-deployment/service.yaml
           resource-name: service/flaskapp
   
+  smoke_test:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - run:
+          name: try to access service ip on port 8000
+          command: |
+            URL="a920e76e9f5864d8c94cc9d69f74570f-588638970.us-east-2.elb.amazonaws.com:8000" 
+            echo $URL 
+            if curl -s $URL | grep "Sklearn Prediction Home"
+            then
+              return 0
+            else
+              return 1
+            fi
+            
   delete_old_image:
     docker:
       - image: docker:17.05.0-ce-git
@@ -171,5 +188,7 @@ workflows:
          requires: [update_deployment_spec]
       - create_service:
          requires: [create_deployment]
+      - smoke_test:
+         requires: [create_service]
 
 
