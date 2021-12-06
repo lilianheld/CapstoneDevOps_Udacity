@@ -157,10 +157,10 @@ jobs:
     steps:
       - checkout
       - run:
-        name: Install dependencies
-        command: |
-          # install the dependencies needed for your playbook
-          apk add --update curl
+          name: Install dependencies
+          command: |
+            # install the dependencies needed for your playbook
+            apk add --update curl
       - run:
           name: try to access service ip
           command: |
@@ -211,5 +211,8 @@ workflows:
          requires: [create_deployment]
       - smoke_test:
          requires: [create_service]
+      - delete_old_image:
+          requires: [smoke_test]
+
 
 
