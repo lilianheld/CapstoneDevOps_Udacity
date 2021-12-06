@@ -112,7 +112,7 @@ jobs:
           get-rollout-status: true
           resource-file-path: kubernetes-deployment/deployment.yaml
           resource-name: deployment/flaskapp
-  create-service:
+  create_service:
     executor: aws-eks/python3
     steps:
       - checkout
