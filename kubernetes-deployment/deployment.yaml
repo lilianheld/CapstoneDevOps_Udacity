@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: flaskapp
-        image: ECR_ENDPOINT/udacity/capstone:260d566c348a0631d2b2246cac104b87bbfc6956
+        image: 659153662700.dkr.ecr.us-east-2.amazonaws.com/udacity/capstone:260d566c348a0631d2b2246cac104b87bbfc6956
         ports:
         - name: http
           containerPort: 80
