@@ -87,7 +87,7 @@ jobs:
           name: Update deployment yaml
           command: |
             cd kubernetes-deployment
-            OLD_IMAGETAG=cat image-tag.txt
+            export OLD_IMAGETAG=$(cat image-tag.txt)
             echo $OLD_IMAGETAG
             sed -i 's/$OLD_IMAGETAG/${CIRCLE_SHA1}/g' deployment.yaml
             sed -i 's/ECR_ENDPOINT/${ECR_ENDPOINT}/g' deployment.yaml
