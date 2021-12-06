@@ -48,7 +48,7 @@ jobs:
             . venv/bin/activate
             make lint
 
-  run_docker:
+  push_image:
     docker:
       - image: docker:17.05.0-ce-git
     steps:
@@ -76,9 +76,27 @@ jobs:
             echo "login variable: $login"
             ${login}
             docker tag udacity/capstone:latest "${ECR_ENDPOINT}/udacity/capstone:${CIRCLE_SHA1}"
-            echo "docker image ls"
             docker push "${ECR_ENDPOINT}/udacity/capstone:${CIRCLE_SHA1}"
             
+  update_deployment_spec:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - run:
+        name: Update deployment yaml
+        command: |
+          cd kubernetes-deployment
+          OLD_IMAGETAG=(cat image-tag.txt)
+          echo $OLD_IMAGETAG
+          sed -i 's/$OLD_IMAGETAG/${CIRCLE_SHA1}/g' deployment.yaml
+          sed -i 's/ECR_ENDPOINT/${ECR_ENDPOINT}/g' deployment.yaml
+          echo "-- deployment.yaml --"
+          cat deployment.yaml
+          echo ${CIRCLE_SHA1} > image-tag.txt
+          echo "-- image-tag.txt --"
+          cat image-tag.txt
+  
   create_deployment:
     executor: aws-eks/python3
     steps:
@@ -95,5 +113,7 @@ jobs:
 workflows:
   default:
     jobs:
+      - push_image
+      - update_deployment_spec
       - create_deployment
 
