@@ -73,7 +73,6 @@ jobs:
           command: |
             echo "Login to ECR"
             login="$(aws ecr --region us-east-2 get-login)"
-            echo "login variable: $login"
             ${login}
             docker tag udacity/capstone:latest "${ECR_ENDPOINT}/udacity/capstone:${CIRCLE_SHA1}"
             docker push "${ECR_ENDPOINT}/udacity/capstone:${CIRCLE_SHA1}"
@@ -122,6 +121,30 @@ jobs:
           namespace: bluegreen
           resource-file-path: kubernetes-deployment/service.yaml
           resource-name: service/flaskapp
+  
+  delete_old_image:
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --no-cache \
+              py-pip=9.0.0-r1
+            pip install \
+              awscli==1.11.76
+              
+      - run: 
+          name: Delete Docker Image on ECR
+          command: |
+            echo "Login to ECR"
+            login="$(aws ecr --region us-east-2 get-login)"
+            ${login}
+            aws ecr batch-delete-image --repository-name udacity/capstone --image-ids imageTag=${CIRCLE_SHA1}
+
 workflows:
   default:
     jobs:
@@ -132,4 +155,6 @@ workflows:
          requires: [update_deployment_spec]
       - create_service:
          requires: [create_deployment]
+      - delete_old_image:
+         requires: [create_service]
 
