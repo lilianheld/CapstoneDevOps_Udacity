@@ -89,8 +89,8 @@ jobs:
             cd kubernetes-deployment
             export OLD_IMAGETAG=$(cat image-tag.txt)
             echo $OLD_IMAGETAG
-            sed -i 's/$OLD_IMAGETAG/${CIRCLE_SHA1}/g' deployment.yaml
-            sed -i 's/ECR_ENDPOINT/${ECR_ENDPOINT}/g' deployment.yaml
+            sed -i "s/$OLD_IMAGETAG/${CIRCLE_SHA1}/g" deployment.yaml
+            sed -i "s/ECR_ENDPOINT/${ECR_ENDPOINT}/g" deployment.yaml
             echo "-- deployment.yaml --"
             cat deployment.yaml
             echo ${CIRCLE_SHA1} > image-tag.txt
