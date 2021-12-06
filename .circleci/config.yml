@@ -102,6 +102,21 @@ jobs:
     executor: aws-eks/python3
     steps:
       - checkout
+      - run:
+          name: Update deployment yaml
+          command: |
+            cd kubernetes-deployment
+            export OLD_IMAGETAG=$(cat image-tag.txt)
+            echo $OLD_IMAGETAG
+            sed -i "s/$OLD_IMAGETAG/${CIRCLE_SHA1}/g" deployment.yaml
+            sed -i "s/$OLD_IMAGETAG/${CIRCLE_SHA1}/g" service.yaml
+            echo "-- deployment.yaml --"
+            cat deployment.yaml
+            echo "-- service.yaml --"
+            cat service.yaml
+            echo ${CIRCLE_SHA1} > image-tag.txt
+            echo "-- image-tag.txt --"
+            cat image-tag.txt
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: capstone
           install-kubectl: true
@@ -149,12 +164,11 @@ workflows:
   default:
     jobs:
       - push_image
-      - update_deployment_spec:
-          requires: [push_image]
+      #- update_deployment_spec:
+      #    requires: [push_image]
       - create_deployment:
-         requires: [update_deployment_spec]
+         requires: [push_image]
       - create_service:
          requires: [create_deployment]
-      - delete_old_image:
-         requires: [create_service]
+
 
