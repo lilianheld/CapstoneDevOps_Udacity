@@ -86,23 +86,17 @@ jobs:
           name: Update deployment yaml
           command: |
             cd kubernetes-deployment
-            export OLD_IMAGETAG=$(cat image-tag.txt)
-            echo $OLD_IMAGETAG
-            sed -i "s/$OLD_IMAGETAG/${CIRCLE_SHA1}/g" deployment.yaml
-            sed -i "s/$OLD_IMAGETAG/${CIRCLE_SHA1}/g" service.yaml
+            sed -i "s/latest-tag/${CIRCLE_SHA1}/g" deployment.yaml
+            sed -i "s/latest-tag/${CIRCLE_SHA1}/g" service.yaml
             echo "-- deployment.yaml --"
             cat deployment.yaml
             echo "-- service.yaml --"
             cat service.yaml
-            echo ${CIRCLE_SHA1} > image-tag.txt
-            echo "-- image-tag.txt --"
-            cat image-tag.txt
       - persist_to_workspace:
           root: ~/
           paths:
             - project/kubernetes-deployment/deployment.yaml
             - project/kubernetes-deployment/service.yaml
-            - project/kubernetes-deployment/image-tag.txt
   
   create_deployment:
     executor: aws-eks/python3
@@ -137,6 +131,25 @@ jobs:
           namespace: bluegreen
           resource-file-path: kubernetes-deployment/service.yaml
           resource-name: service/flaskapp
+          
+  get_oldVersion:
+    executor: aws-eks/python3
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - kubernetes/install-kubectl
+      - run:
+          name: get pod spec
+          command: |
+            export OldVersion=$(kubectl get service flaskapp -o=jsonpath='{.spec.selector.version}' --namespace=bluegreen) #find deployed version
+            echo $OldVersion > old-version.txt
+            echo "-- old-version.txt --"
+            cat old-version.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/kubernetes-deployment/old-version.txt
   
   smoke_test:
     docker:
@@ -144,7 +157,12 @@ jobs:
     steps:
       - checkout
       - run:
-          name: try to access service ip on port 8000
+        name: Install dependencies
+        command: |
+          # install the dependencies needed for your playbook
+          apk add --update curl
+      - run:
+          name: try to access service ip
           command: |
             URL="a920e76e9f5864d8c94cc9d69f74570f-588638970.us-east-2.elb.amazonaws.com:8000" 
             echo $URL 
@@ -160,6 +178,8 @@ jobs:
       - image: docker:17.05.0-ce-git
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
@@ -169,18 +189,19 @@ jobs:
               py-pip=9.0.0-r1
             pip install \
               awscli==1.11.76
-              
       - run: 
           name: Delete Docker Image on ECR
           command: |
             echo "Login to ECR"
             login="$(aws ecr --region us-east-2 get-login)"
             ${login}
-            aws ecr batch-delete-image --repository-name udacity/capstone --image-ids imageTag=${CIRCLE_SHA1}
+            export OLD_Version=$(cat old-version.txt)
+            aws ecr batch-delete-image --repository-name udacity/capstone --image-ids imageTag=$OLD_Version
 
 workflows:
   default:
     jobs:
+      - get_oldVersion
       - push_image
       - update_deployment_spec:
           requires: [push_image]
