@@ -15,7 +15,7 @@ jobs:
     # Use the same Docker base as the project
       - image: python:3.7.3-stretch
 
-    working_directory: ~/repo
+   # working_directory: ~/repo
 
     steps:
       - checkout
@@ -97,26 +97,23 @@ jobs:
             echo ${CIRCLE_SHA1} > image-tag.txt
             echo "-- image-tag.txt --"
             cat image-tag.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - kubernetes-deployment/deployment.yaml
+            - kubernetes-deployment/service.yaml
   
   create_deployment:
     executor: aws-eks/python3
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/
       - run:
-          name: Update deployment yaml
+          name: print out deployment spec
           command: |
-            cd kubernetes-deployment
-            export OLD_IMAGETAG=$(cat image-tag.txt)
-            echo $OLD_IMAGETAG
-            sed -i "s/$OLD_IMAGETAG/${CIRCLE_SHA1}/g" deployment.yaml
-            sed -i "s/$OLD_IMAGETAG/${CIRCLE_SHA1}/g" service.yaml
             echo "-- deployment.yaml --"
             cat deployment.yaml
-            echo "-- service.yaml --"
-            cat service.yaml
-            echo ${CIRCLE_SHA1} > image-tag.txt
-            echo "-- image-tag.txt --"
-            cat image-tag.txt
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: capstone
           install-kubectl: true
@@ -125,10 +122,13 @@ jobs:
           #get-rollout-status: true
           resource-file-path: kubernetes-deployment/deployment.yaml
           resource-name: deployment/flaskapp
+          
   create_service:
     executor: aws-eks/python3
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: capstone
           install-kubectl: true
