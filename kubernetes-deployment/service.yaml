@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata: 
+  name: flaskapp
+  namespace: bluegreen
+  labels: 
+    name: flaskapp
+spec:
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 80
+  selector: 
+        name: flaskapp
+        version: "260d566c348a0631d2b2246cac104b87bbfc6956"
+  type: LoadBalancer

@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flaskapp-260d566c348a0631d2b2246cac104b87bbfc6956
+  namespace: bluegreen
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+        name: flaskapp
+        version: "260d566c348a0631d2b2246cac104b87bbfc6956"
+  template:
+    metadata:
+      labels:
+        name: flaskapp
+        version: "260d566c348a0631d2b2246cac104b87bbfc6956"
+    spec:
+      containers:
+      - name: flaskapp
+        image: 659153662700.dkr.ecr.us-east-2.amazonaws.com/udacity/capstone:260d566c348a0631d2b2246cac104b87bbfc6956
+        ports:
+        - name: http
+          containerPort: 80
+        imagePullPolicy: IfNotPresent
