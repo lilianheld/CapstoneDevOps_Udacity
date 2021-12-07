@@ -148,11 +148,35 @@ jobs:
           paths:
             - project/kubernetes-deployment/old-version.txt
   
-  smoke_test:
-    docker:
-      - image: aws-eks/python3
+  get_externalIP:
+    executor: aws-eks/python3
     steps:
       - checkout
+      - attach_workspace:
+          at: ~/
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: capstone
+          install-kubectl: true
+      - kubernetes/install-kubectl
+      - run:
+          name: get pod spec
+          command: |
+            export ExternalIP=$(kubectl get service flaskapp -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}' --namespace=bluegreen) #get external clusterIP
+            echo $ExternalIP > external-ip.txt
+            echo "-- external-ip.txt --"
+            cat external-ip.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/kubernetes-deployment/external-ip.txt
+  
+  smoke_test:
+    docker:
+      - image: python:3.7-alpine3.11 
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: capstone
           install-kubectl: true
@@ -165,7 +189,7 @@ jobs:
       - run:
           name: try to access service ip
           command: |
-            export ExternalIP=$(kubectl get service flaskapp -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}' --namespace=bluegreen) #get external clusterIP
+            export ExternalIP=$(cat project/kubernetes-deployment/external-ip.txt)
             echo $ExternalIP
             URL=$ExternalIP:8000
             echo $URL 
@@ -222,6 +246,7 @@ workflows:
   default:
     jobs:
       #- get_oldVersion
+      - get_externalIP
       #- push_image
       #- update_deployment_spec:
       #    requires: [push_image]
@@ -229,8 +254,8 @@ workflows:
       #   requires: [update_deployment_spec]
       #- create_service:
       #   requires: [create_deployment]
-      - smoke_test
-      #   requires: [create_service]
+      - smoke_test:
+         requires: [get_externalIP] # change back to create_service
       #- delete_old_image:
       #    requires: [smoke_test]
       #- delete_old_deployment:
