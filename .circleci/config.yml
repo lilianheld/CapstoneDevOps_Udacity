@@ -159,7 +159,7 @@ jobs:
           install-kubectl: true
       - kubernetes/install-kubectl
       - run:
-          name: get pod spec
+          name: get service ip
           command: |
             export ExternalIP=$(kubectl get service flaskapp -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}' --namespace=bluegreen) #get external clusterIP
             echo $ExternalIP > external-ip.txt
@@ -177,17 +177,13 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/
-      - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: capstone
-          install-kubectl: true
-      - kubernetes/install-kubectl
       - run:
           name: Install dependencies
           command: |
             # install the dependencies needed for your playbook
             apk add --update curl
       - run:
-          name: try to access service ip
+          name: run curl smoke-test
           command: |
             export ExternalIP=$(cat project/kubernetes-deployment/external-ip.txt)
             echo $ExternalIP
