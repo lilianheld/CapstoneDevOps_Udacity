@@ -159,7 +159,7 @@ jobs:
             cat external-ip.txt
             URL=$ExternalIP:8000
             echo $URL 
-            curl -s $URL | grep "Sklearn Predictisfon Home"
+            curl -s $URL | grep "Sklearn Prediction Home"
 
       - persist_to_workspace:
           root: ~/
