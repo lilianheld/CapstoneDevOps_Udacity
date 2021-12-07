@@ -184,7 +184,7 @@ jobs:
       - run:
           name: run curl smoke-test
           command: |
-            export ExternalIP=$(cat project/kubernetes-deployment/external-ip.txt)
+            export ExternalIP=$(cat ~/project/kubernetes-deployment/external-ip.txt)
             echo $ExternalIP
             URL=$ExternalIP:8000
             echo $URL 
