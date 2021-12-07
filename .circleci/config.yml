@@ -129,23 +129,16 @@ jobs:
     executor: aws-eks/python3
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: capstone
           install-kubectl: true
       - kubernetes/install-kubectl
       - run:
-          name: get pod spec
+          name: get previous version and save to memstash
           command: |
             export OldVersion=$(kubectl get service flaskapp -o=jsonpath='{.spec.selector.version}' --namespace=bluegreen) #find deployed version
-            echo $OldVersion > old-version.txt
-            echo "-- old-version.txt --"
-            cat old-version.txt
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/kubernetes-deployment/old-version.txt
+            echo $OldVersion
+            curl -H "Content-Type: text/plain" -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request PUT --data $OldVersion https://api.memstash.io/values/oldVersion_${CIRCLE_SHA1}
   
   get_externalIP:
     executor: aws-eks/python3
@@ -166,12 +159,8 @@ jobs:
             cat external-ip.txt
             URL=$ExternalIP:8000
             echo $URL 
-            if curl -s $URL | grep "Sklearn Prediction Home"
-            then
-              return 0
-            else
-              return 1
-            fi
+            if curl -s $URL | grep "Sklearn Predictisfon Home"
+
       - persist_to_workspace:
           root: ~/
           paths:
