@@ -159,20 +159,25 @@ jobs:
             
   delete_old_image:
     docker:
-      - image: docker:17.05.0-ce-git
+      - image: python:3.7-alpine3.11
     steps:
       - checkout
       - attach_workspace:
           at: ~/
-      - setup_remote_docker:
-          docker_layer_caching: true
       - run:
           name: Install dependencies
           command: |
-            apk add --no-cache curl \
-              py-pip=9.0.0-r1
-            pip install \
-              awscli==1.11.76
+            apk add --update curl
+      - run:
+          name: Install aws-cli
+          command: |
+            apk add --no-cache \
+                python3 \
+                py3-pip \
+            && pip3 install --upgrade pip \
+            && pip3 install --no-cache-dir \
+                awscli \
+            && rm -rf /var/cache/apk/*
       - run: 
           name: Delete Docker Image on ECR
           command: |
@@ -196,6 +201,7 @@ jobs:
           command: |
             OLD_VERSION=$(curl -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request GET https://api.memstash.io/values/previousVersion_${CIRCLE_SHA1})
             echo $OLD_VERSION
+            echo TEST=$(kubectl get deployments)
             kubectl delete deployment flaskapp-$OLD_VERSION
  
 
