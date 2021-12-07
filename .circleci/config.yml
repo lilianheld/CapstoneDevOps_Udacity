@@ -5,8 +5,7 @@ orbs:
   kubernetes: circleci/kubernetes@0.12.1
 
 jobs:
-
-  build:
+  build-and-lint:
     docker:
     # Use the same Docker base as the project
       - image: python:3.7.3-stretch
@@ -125,7 +124,7 @@ jobs:
           resource-file-path: kubernetes-deployment/service.yaml
           resource-name: service/flaskapp
           
-  get_oldVersion:
+  get_currentVersion:
     executor: aws-eks/python3
     steps:
       - checkout
@@ -136,11 +135,11 @@ jobs:
       - run:
           name: get previous version and save to memstash
           command: |
-            export OldVersion=$(kubectl get service flaskapp -o=jsonpath='{.spec.selector.version}' --namespace=bluegreen) #find deployed version
-            echo $OldVersion
-            curl -H "Content-Type: text/plain" -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request PUT --data $OldVersion https://api.memstash.io/values/oldVersion_${CIRCLE_SHA1}
+            export VERSION=$(kubectl get service flaskapp -o=jsonpath='{.spec.selector.version}' --namespace=bluegreen) #find deployed version
+            echo $VERSION
+            curl -H "Content-Type: text/plain" -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request PUT --data $VERSION https://api.memstash.io/values/previousVersion_${CIRCLE_SHA1}
   
-  get_externalIP:
+  smoke_test:
     executor: aws-eks/python3
     steps:
       - checkout
@@ -154,42 +153,9 @@ jobs:
           name: get service ip
           command: |
             export ExternalIP=$(kubectl get service flaskapp -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}' --namespace=bluegreen) #get external clusterIP
-            echo $ExternalIP > external-ip.txt
-            echo "-- external-ip.txt --"
-            cat external-ip.txt
             URL=$ExternalIP:8000
             echo $URL 
             curl -s $URL | grep "Sklearn Prediction Home"
-
-      - persist_to_workspace:
-          root: ~/
-          paths:
-            - project/kubernetes-deployment/external-ip.txt
-            
-  smoke_test:
-    docker:
-      - image: python:3.7-alpine3.11 
-    steps:
-      - checkout
-      - attach_workspace:
-          at: ~/
-      - run:
-          name: Install dependencies
-          command: |
-            # install the dependencies needed for your playbook
-            apk add --update curl
-      - run:
-          name: run curl smoke-test
-          command: |
-            export ExternalIP=$(cat ~/project/kubernetes-deployment/external-ip.txt)
-            URL=$ExternalIP:8000
-            echo $URL 
-            if curl -s $URL | grep "Sklearn Prediction Home"
-            then
-              return 0
-            else
-              return 1
-            fi
             
   delete_old_image:
     docker:
@@ -213,15 +179,14 @@ jobs:
             echo "Login to ECR"
             login="$(aws ecr --region us-east-2 get-login)"
             ${login}
-            export OLD_Version=$(cat project/kubernetes-deployment/old-version.txt)
-            aws ecr batch-delete-image --repository-name udacity/capstone --image-ids imageTag=$OLD_Version
+            OLD_VERSION=$(curl -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request GET https://api.memstash.io/values/previousVersion_${CIRCLE_SHA1}
+            echo $OLD_VERSION
+            aws ecr batch-delete-image --repository-name udacity/capstone --image-ids imageTag=$OLD_VERSION
 
   delete_old_deployment:
     executor: aws-eks/python3
     steps:
       - checkout
-      - attach_workspace:
-          at: ~/
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: capstone
           install-kubectl: true
@@ -229,28 +194,29 @@ jobs:
       - run:
           name: delete previous kubernetes deployment
           command: |
-            export OLD_Version=$(cat project/kubernetes-deployment/old-version.txt)
-            kubectl delete deployment flaskapp-$OLD_Version
+            OLD_VERSION=$(curl -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request GET https://api.memstash.io/values/previousVersion_${CIRCLE_SHA1}
+            echo $OLD_VERSION
+            kubectl delete deployment flaskapp-$OLD_VERSION
  
 
 workflows:
   default:
     jobs:
-      #- get_oldVersion
+      - get_currentVersion
       - get_externalIP
-      #- push_image
-      #- update_deployment_spec:
-      #    requires: [push_image]
-      #- create_deployment:
-      #   requires: [update_deployment_spec]
-      #- update_service:
-      #   requires: [create_deployment]
-      #- smoke_test:
-      #   requires: [update_service] 
-      #- delete_old_image:
-      #    requires: [smoke_test]
-      #- delete_old_deployment:
-      #    requires: [smoke_test]
+      - push_image
+      - update_deployment_spec:
+          requires: [push_image]
+      - create_deployment:
+         requires: [update_deployment_spec]
+      - update_service:
+         requires: [create_deployment]
+      - smoke_test:
+         requires: [update_service] 
+      - delete_old_image:
+          requires: [smoke_test]
+      - delete_old_deployment:
+          requires: [smoke_test]
 
 
 
