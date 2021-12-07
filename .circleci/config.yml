@@ -203,7 +203,6 @@ workflows:
   default:
     jobs:
       - get_currentVersion
-      - get_externalIP
       - push_image
       - update_deployment_spec:
           requires: [push_image]
