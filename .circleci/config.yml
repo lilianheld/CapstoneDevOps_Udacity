@@ -1,7 +1,3 @@
-# Python CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-python/ for more details
-#
 version: 2.1
 
 orbs:
@@ -14,8 +10,6 @@ jobs:
     docker:
     # Use the same Docker base as the project
       - image: python:3.7.3-stretch
-
-   # working_directory: ~/repo
 
     steps:
       - checkout
@@ -167,7 +161,8 @@ jobs:
       - run:
           name: try to access service ip
           command: |
-            URL="a920e76e9f5864d8c94cc9d69f74570f-588638970.us-east-2.elb.amazonaws.com:8000" 
+            export ExternalIP=$(kubectl get service flaskapp -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}' --namespace=bluegreen) #get external clusterIP
+            URL=$ExternalIP:8000
             echo $URL 
             if curl -s $URL | grep "Sklearn Prediction Home"
             then
@@ -201,6 +196,23 @@ jobs:
             export OLD_Version=$(cat project/kubernetes-deployment/old-version.txt)
             aws ecr batch-delete-image --repository-name udacity/capstone --image-ids imageTag=$OLD_Version
 
+  delete_old_deployment:
+    executor: aws-eks/python3
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: capstone
+          install-kubectl: true
+      - kubernetes/install-kubectl
+      - run:
+          name: delete previous kubernetes deployment
+          command: |
+            export OLD_Version=$(cat project/kubernetes-deployment/old-version.txt)
+            kubectl delete deployment flaskapp-$OLD_Version
+ 
+
 workflows:
   default:
     jobs:
@@ -215,6 +227,8 @@ workflows:
       - smoke_test:
          requires: [create_service]
       - delete_old_image:
+          requires: [smoke_test]
+      - delete_old_deployment:
           requires: [smoke_test]
 
 
