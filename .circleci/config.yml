@@ -161,7 +161,7 @@ jobs:
       - run:
           name: try to access service ip
           command: |
-            export ExternalIP=$(kubectl get service flaskapp -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}' --namespace=bluegreen) #get external clusterIP
+            export ExternalIP=$(kubectl get service flaskapp -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}' --namespace=bluegreen)' #get external clusterIP
             URL=$ExternalIP:8000
             echo $URL 
             if curl -s $URL | grep "Sklearn Prediction Home"
