@@ -168,7 +168,7 @@ jobs:
           root: ~/
           paths:
             - project/kubernetes-deployment/external-ip.txt
-  
+            
   smoke_test:
     docker:
       - image: python:3.7-alpine3.11 
