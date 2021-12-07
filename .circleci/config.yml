@@ -150,9 +150,13 @@ jobs:
   
   smoke_test:
     docker:
-      - image: python:3.7-alpine3.11
+      - image: aws-eks/python3
     steps:
       - checkout
+      - aws-eks/update-kubeconfig-with-authenticator:
+          cluster-name: capstone
+          install-kubectl: true
+      - kubernetes/install-kubectl
       - run:
           name: Install dependencies
           command: |
@@ -162,6 +166,7 @@ jobs:
           name: try to access service ip
           command: |
             export ExternalIP=$(kubectl get service flaskapp -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}' --namespace=bluegreen) #get external clusterIP
+            echo $ExternalIP
             URL=$ExternalIP:8000
             echo $URL 
             if curl -s $URL | grep "Sklearn Prediction Home"
@@ -216,20 +221,20 @@ jobs:
 workflows:
   default:
     jobs:
-      - get_oldVersion
-      - push_image
-      - update_deployment_spec:
-          requires: [push_image]
-      - create_deployment:
-         requires: [update_deployment_spec]
-      - create_service:
-         requires: [create_deployment]
-      - smoke_test:
-         requires: [create_service]
-      - delete_old_image:
-          requires: [smoke_test]
-      - delete_old_deployment:
-          requires: [smoke_test]
+      #- get_oldVersion
+      #- push_image
+      #- update_deployment_spec:
+      #    requires: [push_image]
+      #- create_deployment:
+      #   requires: [update_deployment_spec]
+      #- create_service:
+      #   requires: [create_deployment]
+      - smoke_test
+      #   requires: [create_service]
+      #- delete_old_image:
+      #    requires: [smoke_test]
+      #- delete_old_deployment:
+      #    requires: [smoke_test]
 
 
 
