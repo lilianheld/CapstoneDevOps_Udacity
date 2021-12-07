@@ -108,7 +108,6 @@ jobs:
           install-kubectl: true
       - kubernetes/create-or-update-resource:
           namespace: bluegreen
-          #get-rollout-status: true
           resource-file-path: kubernetes-deployment/deployment.yaml
           resource-name: deployment/flaskapp
           
