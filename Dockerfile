@@ -13,7 +13,6 @@ COPY . app.py /app/
 # hadolint ignore=DL3013
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-lint-error
 ## Step 4:
 # Expose port 80
 EXPOSE 80
