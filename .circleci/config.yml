@@ -111,7 +111,7 @@ jobs:
           resource-file-path: kubernetes-deployment/deployment.yaml
           resource-name: deployment/flaskapp
           
-  create_service:
+  update_service:
     executor: aws-eks/python3
     steps:
       - checkout
@@ -185,7 +185,6 @@ jobs:
           name: run curl smoke-test
           command: |
             export ExternalIP=$(cat ~/project/kubernetes-deployment/external-ip.txt)
-            echo $ExternalIP
             URL=$ExternalIP:8000
             echo $URL 
             if curl -s $URL | grep "Sklearn Prediction Home"
@@ -240,21 +239,21 @@ jobs:
 workflows:
   default:
     jobs:
-      #- get_oldVersion
+      - get_oldVersion
       - get_externalIP
-      #- push_image
-      #- update_deployment_spec:
-      #    requires: [push_image]
-      #- create_deployment:
-      #   requires: [update_deployment_spec]
-      #- create_service:
-      #   requires: [create_deployment]
+      - push_image
+      - update_deployment_spec:
+          requires: [push_image]
+      - create_deployment:
+         requires: [update_deployment_spec]
+      - update_service:
+         requires: [create_deployment]
       - smoke_test:
-         requires: [get_externalIP] # change back to create_service
-      #- delete_old_image:
-      #    requires: [smoke_test]
-      #- delete_old_deployment:
-      #    requires: [smoke_test]
+         requires: [update_service] 
+      - delete_old_image:
+          requires: [smoke_test]
+      - delete_old_deployment:
+          requires: [smoke_test]
 
 
 
