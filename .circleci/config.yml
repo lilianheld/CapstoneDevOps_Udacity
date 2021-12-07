@@ -5,7 +5,7 @@ orbs:
   kubernetes: circleci/kubernetes@0.12.1
 
 jobs:
-  build-and-lint:
+  build_and_lint:
     docker:
     # Use the same Docker base as the project
       - image: python:3.7.3-stretch
@@ -206,12 +206,12 @@ workflows:
   default:
     jobs:
       - get_currentVersion
-      - build-and-lint
+      - build_and_lint
       - push_image:
-        requires: [build-and-lint]
-        filters:
-            branches:
-              only: [master]
+          requires: [build_and_lint]
+          filters:
+              branches:
+                only: [master]
       - update_deployment_spec:
           requires: [push_image]
           filters:
@@ -219,17 +219,17 @@ workflows:
               only: [master]
       - create_deployment:
          requires: [update_deployment_spec]
-          filters:
+         filters:
             branches:
               only: [master]
       - update_service:
          requires: [create_deployment]
-          filters:
+         filters:
             branches:
               only: [master]
       - smoke_test:
          requires: [update_service]
-          filters:
+         filters:
             branches:
               only: [master]
       - delete_old_image:
