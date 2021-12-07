@@ -179,7 +179,7 @@ jobs:
             echo "Login to ECR"
             login="$(aws ecr --region us-east-2 get-login)"
             ${login}
-            OLD_VERSION=$(curl -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request GET https://api.memstash.io/values/previousVersion_${CIRCLE_SHA1}
+            OLD_VERSION=$(curl -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request GET https://api.memstash.io/values/previousVersion_${CIRCLE_SHA1})
             echo $OLD_VERSION
             aws ecr batch-delete-image --repository-name udacity/capstone --image-ids imageTag=$OLD_VERSION
 
@@ -194,7 +194,7 @@ jobs:
       - run:
           name: delete previous kubernetes deployment
           command: |
-            OLD_VERSION=$(curl -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request GET https://api.memstash.io/values/previousVersion_${CIRCLE_SHA1}
+            OLD_VERSION=$(curl -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request GET https://api.memstash.io/values/previousVersion_${CIRCLE_SHA1})
             echo $OLD_VERSION
             kubectl delete deployment flaskapp-$OLD_VERSION
  
