@@ -164,6 +164,14 @@ jobs:
             echo $ExternalIP > external-ip.txt
             echo "-- external-ip.txt --"
             cat external-ip.txt
+            URL=$ExternalIP:8000
+            echo $URL 
+            if curl -s $URL | grep "Sklearn Prediction Home"
+            then
+              return 0
+            else
+              return 1
+            fi
       - persist_to_workspace:
           root: ~/
           paths:
@@ -239,21 +247,21 @@ jobs:
 workflows:
   default:
     jobs:
-      - get_oldVersion
+      #- get_oldVersion
       - get_externalIP
-      - push_image
-      - update_deployment_spec:
-          requires: [push_image]
-      - create_deployment:
-         requires: [update_deployment_spec]
-      - update_service:
-         requires: [create_deployment]
-      - smoke_test:
-         requires: [update_service] 
-      - delete_old_image:
-          requires: [smoke_test]
-      - delete_old_deployment:
-          requires: [smoke_test]
+      #- push_image
+      #- update_deployment_spec:
+      #    requires: [push_image]
+      #- create_deployment:
+      #   requires: [update_deployment_spec]
+      #- update_service:
+      #   requires: [create_deployment]
+      #- smoke_test:
+      #   requires: [update_service] 
+      #- delete_old_image:
+      #    requires: [smoke_test]
+      #- delete_old_deployment:
+      #    requires: [smoke_test]
 
 
 

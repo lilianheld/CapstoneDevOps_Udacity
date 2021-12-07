@@ -1,7 +1,7 @@
 ## Circle CI Status
 [![lilianheld](https://circleci.com/gh/lilianheld/udacityDevOps_project4.svg?style=svg)](https://app.circleci.com/pipelines/github/lilianheld/udacityDevOps_project4)
 
-### Project Files and Folders
+### Project Files and Folders - TO BE REVIEWED
 * .circleci/config.yml:     contains the definition of steps that are run within the circleci pipeline - install dependencies & linting
 * model_data:               contains all files related to the pretrained ML model
 * output_txt_files:         contain outputs after executing the run_docker and run_kubernetes scripts
@@ -17,7 +17,7 @@
 * upload_docker.sh:            upload docker image to private github repo
 
 
-## Project Overview
+## Project Overview - TO BE REVIEWED
 
 In this project, you will apply the skills you have acquired in this course to operationalize a Machine Learning Microservice API. 
 
