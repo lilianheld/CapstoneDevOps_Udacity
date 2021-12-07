@@ -206,19 +206,42 @@ workflows:
   default:
     jobs:
       - get_currentVersion
-      - push_image
+      - build-and-lint
+      - push_image:
+        requires: [build-and-lint]
+        filters:
+            branches:
+              only: [master]
       - update_deployment_spec:
           requires: [push_image]
+          filters:
+            branches:
+              only: [master]
       - create_deployment:
          requires: [update_deployment_spec]
+          filters:
+            branches:
+              only: [master]
       - update_service:
          requires: [create_deployment]
+          filters:
+            branches:
+              only: [master]
       - smoke_test:
-         requires: [update_service] 
+         requires: [update_service]
+          filters:
+            branches:
+              only: [master]
       - delete_old_image:
           requires: [smoke_test]
+          filters:
+            branches:
+              only: [master]
       - delete_old_deployment:
           requires: [smoke_test]
+          filters:
+            branches:
+              only: [master]
 
 
 
