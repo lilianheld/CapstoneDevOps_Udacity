@@ -36,7 +36,7 @@ jobs:
 
       # run lint!
       - run:
-          name: run lint
+          name: run lint using command in Makefile
           command: |
             . venv/bin/activate
             make lint
@@ -62,9 +62,8 @@ jobs:
             docker build -t udacity/capstone .
               
       - run: 
-          name: Push application Docker image
+          name: push docker image to AWS ECR
           command: |
-            echo "Login to ECR"
             login="$(aws ecr --region us-east-2 get-login)"
             ${login}
             docker tag udacity/capstone:latest "${ECR_ENDPOINT}/udacity/capstone:${CIRCLE_SHA1}"
@@ -76,15 +75,11 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Update deployment yaml
+          name: update image in deployment.yaml and selector in service.yaml
           command: |
             cd kubernetes-deployment
             sed -i "s/latest-tag/${CIRCLE_SHA1}/g" deployment.yaml
             sed -i "s/latest-tag/${CIRCLE_SHA1}/g" service.yaml
-            echo "-- deployment.yaml --"
-            cat deployment.yaml
-            echo "-- service.yaml --"
-            cat service.yaml
       - persist_to_workspace:
           root: ~/
           paths:
@@ -98,13 +93,14 @@ jobs:
       - attach_workspace:
           at: ~/
       - run:
-          name: print out deployment spec
+          name: print out updated deployment spec
           command: |
             echo "-- deployment.yaml --"
             cat ~/project/kubernetes-deployment/deployment.yaml
       - aws-eks/update-kubeconfig-with-authenticator:
           cluster-name: capstone
           install-kubectl: true
+      # create/update deployment in kubernetes cluster
       - kubernetes/create-or-update-resource:
           namespace: bluegreen
           resource-file-path: kubernetes-deployment/deployment.yaml
@@ -150,9 +146,9 @@ jobs:
           install-kubectl: true
       - kubernetes/install-kubectl
       - run:
-          name: get service ip
+          name: curl public URL
           command: |
-            export ExternalIP=$(kubectl get service flaskapp -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}' --namespace=bluegreen) #get external clusterIP
+            export ExternalIP=$(kubectl get service flaskapp -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}' --namespace=bluegreen) # get external clusterIP
             URL=$ExternalIP:8000
             echo $URL 
             curl -s $URL | grep "Sklearn Prediction Home"
@@ -198,7 +194,6 @@ jobs:
           command: |
             OLD_VERSION=$(curl -H "token: 7933fe63-4687-4fa1-8426-aa25aa1730ec" --request GET https://api.memstash.io/values/previousVersion_${CIRCLE_SHA1})
             echo $OLD_VERSION
-            echo TEST=$(kubectl get deployments --namespace=bluegreen)
             kubectl delete deployment flaskapp-$OLD_VERSION --namespace=bluegreen
  
 
